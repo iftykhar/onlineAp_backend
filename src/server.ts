@@ -8,7 +8,7 @@ import { initNotificationSocket } from "./socket/notification.service";
 
 async function main() {
   try {
-    await mongoose.connect(config.mongodbUrl as string);
+    await mongoose.connect("mongodb+srv://iftykhar:root@onlineap.vorgswt.mongodb.net/onlineap?appName=onlineap" as string);
     logger.info("MongoDB connected successfully");
     const httpServer = http.createServer(app);
 
@@ -26,8 +26,8 @@ async function main() {
 
     initNotificationSocket(io);
 
-    httpServer.listen(config.port, () => {
-      logger.info(`Server running on port ${config.port}`);
+    httpServer.listen(5000, () => {
+      logger.info(`Server running on port ${5000}`);
     });
   } catch (error: any) {
     logger.error("Server failed to start:", error);

@@ -18,35 +18,11 @@ const registerUser = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "Account created successfully. Please verify your email.",
+    message: "Account created successfully.",
     data: {
       accessToken,
       user,
     },
-  });
-});
-
-const verifyEmail = catchAsync(async (req, res) => {
-  const { email } = req.user;
-  const result = await userService.verifyEmail(email, req.body);
-
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "Email verified successfully. You can now log in.",
-    data: result,
-  });
-});
-
-const resendOtpCode = catchAsync(async (req, res) => {
-  const { email } = req.user;
-  const result = await userService.resendOtpCode(email);
-
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "OTP code sent successfully",
-    data: result,
   });
 });
 
@@ -98,8 +74,6 @@ const updateUserProfile = catchAsync(async (req, res) => {
 
 const userController = {
   registerUser,
-  verifyEmail,
-  resendOtpCode,
   getAllUsers,
   getMyProfile,
   updateUserProfile,

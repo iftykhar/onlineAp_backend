@@ -3,17 +3,11 @@ import { USER_ROLE } from "./user.constant";
 
 export interface IUser {
   _id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
-  phone: string;
   password: string;
-  street: string;
-  location: string;
-  postalCode: string;
-  dateOfBirth: Date;
   role: string;
-  image: {
+  image?: {
     public_id: string;
     url: string;
   };

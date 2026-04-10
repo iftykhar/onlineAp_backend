@@ -96,6 +96,20 @@ const changePassword = catchAsync(async (req, res) => {
   });
 });
 
+const logout = catchAsync(async (_req, res) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax",
+  });
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Logged out successfully",
+  });
+});
+
 const authController = {
   login,
   refreshToken,
@@ -104,6 +118,7 @@ const authController = {
   verifyOtp,
   resetPassword,
   changePassword,
+  logout,
 };
 
 export default authController;

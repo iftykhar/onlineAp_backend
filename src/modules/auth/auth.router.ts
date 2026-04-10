@@ -42,5 +42,7 @@ router.post(
   authController.changePassword
 );
 
+router.post("/logout", authController.logout);
+
 const authRouter = router;
 export default authRouter;

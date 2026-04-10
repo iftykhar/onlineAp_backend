@@ -8,31 +8,31 @@ import { upload } from "../../middleware/multer.middleware";
 
 const router = Router();
 
+// Public — register new user (direct, no OTP)
 router.post(
   "/register",
   validateRequest(userValidation.userValidationSchema),
   userController.registerUser
 );
 
-router.post(
-  "/verify-email",
+// Protected — get current user profile (used by frontend /me)
+router.get(
+  "/me",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.verifyEmail
+  userController.getMyProfile
 );
 
-router.post(
-  "/resend-otp",
-  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  userController.resendOtpCode
-);
-
-router.get("/all-users", userController.getAllUsers);
+// Protected — get current user profile (alias)
 router.get(
   "/my-profile",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
   userController.getMyProfile
 );
 
+// Admin only
+router.get("/all-users", auth(USER_ROLE.ADMIN), userController.getAllUsers);
+
+// Protected — update profile with optional image upload
 router.put(
   "/update-profile",
   upload.single("image"),
@@ -40,6 +40,7 @@ router.put(
   userController.updateUserProfile
 );
 
+// Protected — get admin ID (used for notification targeting)
 router.get(
   "/admin_id",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),

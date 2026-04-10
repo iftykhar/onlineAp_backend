@@ -1,16 +1,11 @@
 import bcrypt from "bcrypt";
 import { model, Schema } from "mongoose";
 import config from "../../config";
-import { applyEncryption } from "../../middleware/encryptionMiddleware";
 import { IUser, userModel } from "./user.interface";
 
 const userSchema = new Schema<IUser>(
   {
-    firstName: {
-      type: String,
-      required: true,
-    },
-    lastName: {
+    fullName: {
       type: String,
       required: true,
     },
@@ -19,24 +14,9 @@ const userSchema = new Schema<IUser>(
       required: true,
       unique: true,
     },
-    phone: {
-      type: String,
-    },
     password: {
       type: String,
       required: true,
-    },
-    street: {
-      type: String,
-    },
-    location: {
-      type: String,
-    },
-    postalCode: {
-      type: String,
-    },
-    dateOfBirth: {
-      type: Date,
     },
     role: {
       type: String,
@@ -44,12 +24,8 @@ const userSchema = new Schema<IUser>(
       default: "user",
     },
     image: {
-      public_id: {
-        type: String,
-      },
-      url: {
-        type: String,
-      },
+      public_id: { type: String },
+      url: { type: String },
     },
     isVerified: {
       type: Boolean,
@@ -71,7 +47,6 @@ userSchema.pre("save", async function (next) {
     this.password,
     Number(config.bcryptSaltRounds)
   );
-
   next();
 });
 
@@ -98,7 +73,5 @@ userSchema.statics.isUserExistById = async function (
 ): Promise<IUser | null> {
   return await User.findOne({ _id });
 };
-
-applyEncryption(userSchema, ["phone", "street", "location", "postalCode"]);
 
 export const User = model<IUser, userModel>("User", userSchema);

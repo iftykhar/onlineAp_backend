@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import { StatusCodes } from "http-status-codes";
 import config from "../../config";
 import AppError from "../../errors/AppError";
@@ -6,19 +5,16 @@ import {
   deleteFromCloudinary,
   uploadToCloudinary,
 } from "../../utils/cloudinary";
-import sendEmail from "../../utils/sendEmail";
 import { createToken } from "../../utils/tokenGenerate";
-import verificationCodeTemplate from "../../utils/verificationCodeTemplate";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
 
 const registerUser = async (payload: IUser) => {
   const existingUser = await User.isUserExistByEmail(payload.email);
-  if (existingUser && existingUser.isVerified) {
-    throw new AppError("User already exists", StatusCodes.CONFLICT);
+  if (existingUser) {
+    throw new AppError("User already exists with this email", StatusCodes.CONFLICT);
   }
 
-  // Password check
   if (payload.password.length < 6) {
     throw new AppError(
       "Password must be at least 6 characters long",
@@ -26,51 +22,26 @@ const registerUser = async (payload: IUser) => {
     );
   }
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const hashedOtp = await bcrypt.hash(otp, 10);
-  const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-
-  let result: IUser;
-
-  // Case 2: exists but not verified → update OTP
-  if (existingUser && !existingUser.isVerified) {
-    result = (await User.findOneAndUpdate(
-      { email: existingUser.email },
-      { otp: hashedOtp, otpExpires },
-      { new: true }
-    )) as IUser;
-  } else {
-    // Case 3: new user
-    result = await User.create({
-      ...payload,
-      otp: hashedOtp,
-      otpExpires,
-      isVerified: false,
-    });
-  }
-
-  // Send email
-  await sendEmail({
-    to: result.email,
-    subject: "Verify your email",
-    html: verificationCodeTemplate(otp),
+  // Direct registration — no OTP email verification needed
+  const result = await User.create({
+    ...payload,
+    isVerified: true,
   });
 
-  // JWT payload
-  const JwtToken = {
-    userId: result._id,
+  const tokenPayload = {
+    id: result._id,
     email: result.email,
     role: result.role,
   };
 
   const accessToken = createToken(
-    JwtToken,
+    tokenPayload,
     config.JWT_SECRET as string,
     config.JWT_EXPIRES_IN as string
   );
 
   const refreshToken = createToken(
-    JwtToken,
+    tokenPayload,
     config.refreshTokenSecret as string,
     config.jwtRefreshTokenExpiresIn as string
   );
@@ -80,87 +51,15 @@ const registerUser = async (payload: IUser) => {
     refreshToken,
     user: {
       _id: result._id,
-      firstName: result.firstName,
-      lastName: result.lastName,
+      fullName: result.fullName,
       email: result.email,
+      role: result.role,
     },
   };
 };
 
-const verifyEmail = async (email: string, payload: string) => {
-  const { otp }: any = payload;
-  if (!otp) throw new Error("OTP is required");
-
-  const existingUser = await User.findOne({ email });
-  if (!existingUser)
-    throw new AppError(
-      "No account found with the provided credentials.",
-      StatusCodes.NOT_FOUND
-    );
-
-  if (!existingUser.otp || !existingUser.otpExpires) {
-    throw new AppError("OTP not requested or expired", StatusCodes.BAD_REQUEST);
-  }
-
-  if (existingUser.otpExpires < new Date()) {
-    throw new AppError("OTP has expired", StatusCodes.BAD_REQUEST);
-  }
-
-  if (existingUser.isVerified === true) {
-    throw new AppError("User already verified", StatusCodes.CONFLICT);
-  }
-
-  const isOtpMatched = await bcrypt.compare(otp.toString(), existingUser.otp);
-  if (!isOtpMatched) throw new AppError("Invalid OTP", StatusCodes.BAD_REQUEST);
-
-  const result = await User.findOneAndUpdate(
-    { email },
-    {
-      isVerified: true,
-      $unset: { otp: "", otpExpires: "" },
-    },
-    { new: true }
-  ).select("username email role");
-  return result;
-};
-
-const resendOtpCode = async (email: string) => {
-  const existingUser = await User.findOne({ email });
-  if (!existingUser)
-    throw new AppError(
-      "No account found with the provided credentials.",
-      StatusCodes.NOT_FOUND
-    );
-
-  if (existingUser.isVerified === true) {
-    throw new AppError("User already verified", StatusCodes.CONFLICT);
-  }
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const hashedOtp = await bcrypt.hash(otp, 10);
-  const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-
-  const result = await User.findOneAndUpdate(
-    { email },
-    {
-      otp: hashedOtp,
-      otpExpires,
-    },
-    { new: true }
-  ).select("username email role");
-
-  await sendEmail({
-    to: existingUser.email,
-    subject: "Verify your email",
-    html: verificationCodeTemplate(otp),
-  });
-  return result;
-};
-
 const getAllUsers = async () => {
-  const result = await User.find().select(
-    "username firstName lastName email role"
-  );
+  const result = await User.find().select("fullName email role");
   return result;
 };
 
@@ -208,9 +107,7 @@ const updateUserProfile = async (payload: any, email: string, file: any) => {
 
   const result = await User.findOneAndUpdate({ email }, updateData, {
     new: true,
-  }).select(
-    "-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires"
-  );
+  }).select("-password -otp -otpExpires -resetPasswordOtp -resetPasswordOtpExpires");
 
   if (file && oldImagePublicId) {
     await deleteFromCloudinary(oldImagePublicId);
@@ -221,8 +118,6 @@ const updateUserProfile = async (payload: any, email: string, file: any) => {
 
 const userService = {
   registerUser,
-  verifyEmail,
-  resendOtpCode,
   getAllUsers,
   getMyProfile,
   updateUserProfile,

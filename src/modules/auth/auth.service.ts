@@ -50,14 +50,8 @@ const login = async (payload: { email: string; password: string }) => {
       id: user._id,
       email: user.email,
       role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      fullName: user.fullName,
       image: user.image,
-      phone: user.phone,
-      street: user.street,
-      location: user.location,
-      postalCode: user.postalCode,
-      dateOfBirth: user.dateOfBirth,
     },
   };
 };
