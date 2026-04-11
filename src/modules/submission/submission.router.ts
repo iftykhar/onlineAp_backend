@@ -22,11 +22,11 @@ router.get(
   submissionController.getSubmissionsByExam
 );
 
-// Candidate: check if already submitted
+// Candidate: check all attempts
 router.get(
-  "/:examId/my-submission",
+  "/:examId/my-attempts",
   auth(USER_ROLE.ADMIN, USER_ROLE.USER),
-  submissionController.getMySubmission
+  submissionController.getMyAttempts
 );
 
 const submissionRouter = router;

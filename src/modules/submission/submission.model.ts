@@ -40,7 +40,7 @@ const submissionSchema = new Schema<ISubmission>(
   }
 );
 
-// Prevent duplicate submissions — one submission per user per exam
-submissionSchema.index({ examId: 1, userId: 1 }, { unique: true });
+// Allow multiple submissions per user per exam (index without unique constraint if needed, but for now we follow the user's request for unlimited attempts)
+// submissionSchema.index({ examId: 1, userId: 1 }, { unique: true });
 
 export const Submission = model<ISubmission>("Submission", submissionSchema);

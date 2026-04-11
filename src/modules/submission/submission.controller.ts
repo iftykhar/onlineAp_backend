@@ -30,7 +30,7 @@ const getSubmissionsByExam = catchAsync(async (req, res) => {
 
 const getMySubmission = catchAsync(async (req, res) => {
   const { examId } = req.params;
-  const userId = req.user.id;
+  const userId = (req as any).user.id;
   const result = await submissionService.getMySubmission(examId, userId);
 
   sendResponse(res, {
@@ -41,10 +41,24 @@ const getMySubmission = catchAsync(async (req, res) => {
   });
 });
 
+const getMyAttempts = catchAsync(async (req, res) => {
+  const { examId } = req.params;
+  const userId = (req as any).user.id;
+  const result = await submissionService.getMyAttempts(examId, userId);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Attempt history retrieved",
+    data: result,
+  });
+});
+
 const submissionController = {
   submitExam,
   getSubmissionsByExam,
   getMySubmission,
+  getMyAttempts,
 };
 
 export default submissionController;

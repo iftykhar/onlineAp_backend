@@ -21,14 +21,14 @@ const submitExam = async (
     throw new AppError("Exam is not available", StatusCodes.BAD_REQUEST);
   }
 
-  // Check if already submitted
-  const existingSubmission = await Submission.findOne({ examId, userId });
-  if (existingSubmission) {
-    throw new AppError(
-      "You have already submitted this exam",
-      StatusCodes.CONFLICT
-    );
-  }
+  // Check if already submitted - REMOVED to allow multiple attempts as per user request
+  // const existingSubmission = await Submission.findOne({ examId, userId });
+  // if (existingSubmission) {
+  //   throw new AppError(
+  //     "You have already submitted this exam",
+  //     StatusCodes.CONFLICT
+  //   );
+  // }
 
   const result = await Submission.create({
     examId,
@@ -50,7 +50,17 @@ const getSubmissionsByExam = async (examId: string) => {
 };
 
 const getMySubmission = async (examId: string, userId: string) => {
-  const result = await Submission.findOne({ examId, userId });
+  // Return the latest submission
+  const result = await Submission.findOne({ examId, userId }).sort({
+    submittedAt: -1,
+  });
+  return result;
+};
+
+const getMyAttempts = async (examId: string, userId: string) => {
+  const result = await Submission.find({ examId, userId }).sort({
+    submittedAt: -1,
+  });
   return result;
 };
 
@@ -58,6 +68,7 @@ const submissionService = {
   submitExam,
   getSubmissionsByExam,
   getMySubmission,
+  getMyAttempts,
 };
 
 export default submissionService;
