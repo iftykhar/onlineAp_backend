@@ -15,8 +15,9 @@ const createExam = catchAsync(async (req, res) => {
   });
 });
 
-const getAllExams = catchAsync(async (_req, res) => {
-  const result = await examService.getAllExams();
+const getAllExams = catchAsync(async (req, res) => {
+  const search = req.query.search as string;
+  const result = await examService.getAllExams(search);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -26,8 +27,9 @@ const getAllExams = catchAsync(async (_req, res) => {
   });
 });
 
-const getAvailableExams = catchAsync(async (_req, res) => {
-  const result = await examService.getAvailableExams();
+const getAvailableExams = catchAsync(async (req, res) => {
+  const search = req.query.search as string;
+  const result = await examService.getAvailableExams(search);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

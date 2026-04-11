@@ -20,20 +20,30 @@ const createExam = async (
   return result;
 };
 
-const getAllExams = async () => {
-  const result = await Exam.find()
+const getAllExams = async (search?: string) => {
+  const query: any = {};
+  if (search) {
+    query.title = { $regex: search, $options: "i" };
+  }
+  const result = await Exam.find(query)
     .populate("createdBy", "fullName email")
     .sort({ createdAt: -1 });
   return result;
 };
 
-const getAvailableExams = async () => {
+const getAvailableExams = async (search?: string) => {
   const now = new Date();
-  const result = await Exam.find({
+  const query: any = {
     status: "published",
     startTime: { $lte: now },
     endTime: { $gte: now },
-  })
+  };
+
+  if (search) {
+    query.title = { $regex: search, $options: "i" };
+  }
+
+  const result = await Exam.find(query)
     .select("-questions.correctAnswer") // Hide answers from candidates
     .sort({ startTime: 1 });
   return result;
