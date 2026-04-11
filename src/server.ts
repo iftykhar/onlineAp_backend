@@ -8,14 +8,19 @@ import { initNotificationSocket } from "./socket/notification.service";
 
 async function main() {
   try {
-    await mongoose.connect("mongodb+srv://iftykhar:root@onlineap.vorgswt.mongodb.net/onlineap?appName=onlineap" as string);
-    logger.info("MongoDB connected successfully");
+    if (!config.mongodbUrl) {
+      throw new Error("MONGODB_URL is not defined in the environment variables");
+    }
+
+    await mongoose.connect(config.mongodbUrl as string);
+    logger.info("✅ MongoDB connected successfully");
+
     const httpServer = http.createServer(app);
 
     const io = new Server(httpServer, {
       cors: {
         origin: "*",
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST", "DELETE", "PATCH", "PUT"],
       },
     });
 
@@ -26,11 +31,17 @@ async function main() {
 
     initNotificationSocket(io);
 
-    httpServer.listen(5000, () => {
-      logger.info(`Server running on port ${5000}`);
+    const port = config.port || 5000;
+    httpServer.listen(port, () => {
+      logger.info(`🌐 Server running on port ${port}`);
     });
   } catch (error: any) {
-    logger.error("Server failed to start:", error);
+    if (error.code === "EADDRINUSE") {
+      logger.error(`❌ Port ${config.port || 5000} is already in use. Please stop the existing process.`);
+    } else {
+      logger.error("🔥 Server failed to start:", error);
+    }
+    process.exit(1);
   }
 }
 
