@@ -91,8 +91,9 @@ const refreshToken = async (token: string) => {
   return { accessToken };
 };
 
-const forgotPassword = async (email: string) => {
+const forgotPassword = async (email: string, newPassword?: string) => {
   if (!email) throw new Error("Email is required");
+  if (!newPassword) throw new Error("New password is required");
 
   const isExistingUser = await User.isUserExistByEmail(email);
   if (!isExistingUser)
@@ -101,38 +102,22 @@ const forgotPassword = async (email: string) => {
       StatusCodes.NOT_FOUND,
     );
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const hashedOtp = await bcrypt.hash(otp, 10);
-  const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+  const hashedPassword = await bcrypt.hash(
+    newPassword,
+    Number(config.bcryptSaltRounds),
+  );
 
   await User.findByIdAndUpdate(
     isExistingUser._id,
     {
-      resetPasswordOtp: hashedOtp,
-      resetPasswordOtpExpires: otpExpires,
+      password: hashedPassword,
+      resetPasswordOtp: "",
+      resetPasswordOtpExpires: null,
     },
     { new: true },
   );
 
-  await sendEmail({
-    to: isExistingUser.email,
-    subject: "Reset your password",
-    html: verificationCodeTemplate(otp),
-  });
-
-  const JwtToken = {
-    userId: isExistingUser._id,
-    email: isExistingUser.email,
-    role: isExistingUser.role,
-  };
-
-  const accessToken = createToken(
-    JwtToken,
-    config.JWT_SECRET as string,
-    config.JWT_EXPIRES_IN as string,
-  );
-
-  return { accessToken };
+  return {};
 };
 
 const resendForgotOtpCode = async (email: string) => {

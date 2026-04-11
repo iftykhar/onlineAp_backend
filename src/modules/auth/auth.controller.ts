@@ -36,13 +36,13 @@ const refreshToken = catchAsync(async (req, res) => {
 });
 
 const forgotPassword = catchAsync(async (req, res) => {
-  const { email } = req.body;
-  const result = await authService.forgotPassword(email);
+  const { email, newPassword } = req.body;
+  const result = await authService.forgotPassword(email, newPassword);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "OTP sent to your email",
+    message: "Password reset successfully",
     data: result,
   });
 });
