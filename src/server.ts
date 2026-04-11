@@ -19,8 +19,14 @@ async function main() {
 
     const io = new Server(httpServer, {
       cors: {
-        origin: "*",
+        origin: [
+          "http://localhost:3000",
+          "http://localhost:3001",
+          "https://online-ap.vercel.app",
+          /\.vercel\.app$/,
+        ],
         methods: ["GET", "POST", "DELETE", "PATCH", "PUT"],
+        credentials: true,
       },
     });
 

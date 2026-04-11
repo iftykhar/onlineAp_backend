@@ -25,7 +25,12 @@ export const loginLimiter = rateLimit({
 
 // CORS options
 const corsOptions = {
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://online-ap.vercel.app",
+    /\.vercel\.app$/, // Allow all Vercel subdomains for preview deployments
+  ],
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   credentials: true,
 };
