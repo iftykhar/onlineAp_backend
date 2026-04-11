@@ -35,7 +35,6 @@ const getAvailableExams = async (search?: string) => {
   const now = new Date();
   const query: any = {
     status: "published",
-    startTime: { $lte: now },
     endTime: { $gte: now },
   };
 
