@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { Submission } from "./submission.model";
 import { Exam } from "../exam/exam.model";
+import sanitizeHtml from "sanitize-html";
 
 const submitExam = async (
   examId: string,
@@ -29,6 +30,24 @@ const submitExam = async (
   //     StatusCodes.CONFLICT
   //   );
   // }
+  
+  // Sanitize answers if they are strings (potential rich text)
+  if (payload.answers) {
+    payload.answers = payload.answers.map(ans => {
+      if (typeof ans.answer === 'string') {
+        return {
+          ...ans,
+          answer: sanitizeHtml(ans.answer, {
+            allowedTags: [ 'b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'br', 'blockquote', 'code', 'pre' ],
+            allowedAttributes: {
+              'a': [ 'href', 'target' ],
+            },
+          })
+        };
+      }
+      return ans;
+    });
+  }
 
   const result = await Submission.create({
     examId,
@@ -64,11 +83,19 @@ const getMyAttempts = async (examId: string, userId: string) => {
   return result;
 };
 
+const getSubmissionById = async (id: string) => {
+  const result = await Submission.findById(id)
+    .populate("userId", "fullName email")
+    .populate("examId");
+  return result;
+};
+
 const submissionService = {
   submitExam,
   getSubmissionsByExam,
   getMySubmission,
   getMyAttempts,
+  getSubmissionById,
 };
 
 export default submissionService;

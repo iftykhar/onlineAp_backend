@@ -29,5 +29,12 @@ router.get(
   submissionController.getMyAttempts
 );
 
+// Candidate: check latest submission
+router.get(
+  "/:examId/my-submission",
+  auth(USER_ROLE.ADMIN, USER_ROLE.USER),
+  submissionController.getMySubmission
+);
+
 const submissionRouter = router;
 export default submissionRouter;

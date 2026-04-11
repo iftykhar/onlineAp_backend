@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import { IExam, IQuestion } from "./exam.interface";
 import { Exam } from "./exam.model";
+import sanitizeHtml from "sanitize-html";
 
 const createExam = async (
   payload: Partial<IExam>,
@@ -115,6 +116,17 @@ const addQuestion = async (examId: string, question: IQuestion) => {
     throw new AppError("Exam not found", StatusCodes.NOT_FOUND);
   }
 
+  // Sanitize title if it's rich text (or any HTML title)
+  if (question.title) {
+    question.title = sanitizeHtml(question.title, {
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat([ 'h1', 'h2', 'span', 'img' ]),
+      allowedAttributes: {
+        ...sanitizeHtml.defaults.allowedAttributes,
+        '*': ['style', 'class'],
+      }
+    });
+  }
+
   exam.questions.push(question);
   await exam.save();
 
@@ -135,6 +147,16 @@ const updateQuestion = async (
   const question = (exam.questions as any).id(questionId);
   if (!question) {
     throw new AppError("Question not found", StatusCodes.NOT_FOUND);
+  }
+
+  if (data.title) {
+    data.title = sanitizeHtml(data.title, {
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat([ 'h1', 'h2', 'span', 'img' ]),
+      allowedAttributes: {
+        ...sanitizeHtml.defaults.allowedAttributes,
+        '*': ['style', 'class'],
+      }
+    });
   }
 
   Object.assign(question, data);

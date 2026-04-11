@@ -2,9 +2,9 @@ import { z } from "zod";
 
 const questionSchema = z.object({
   title: z.string().min(1, "Question title is required"),
-  type: z.enum(["radio", "checkbox", "text"]),
+  type: z.enum(["radio", "checkbox", "text", "rich-text"]),
   options: z.array(z.string()).optional(),
-  correctAnswer: z.union([z.string(), z.array(z.string())]).optional(),
+  correctAnswer: z.union([z.string(), z.array(z.string())]).optional().nullable(),
 });
 
 export const examValidation = {

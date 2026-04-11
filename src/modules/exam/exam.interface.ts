@@ -3,7 +3,7 @@ import { Model, Types } from "mongoose";
 export interface IQuestion {
   _id?: Types.ObjectId;
   title: string;
-  type: "radio" | "checkbox" | "text";
+  type: "radio" | "checkbox" | "text" | "rich-text";
   options?: string[];
   correctAnswer?: string | string[];
 }

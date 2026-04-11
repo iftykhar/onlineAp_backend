@@ -6,7 +6,7 @@ const questionSchema = new Schema<IQuestion>(
     title: { type: String, required: true },
     type: {
       type: String,
-      enum: ["radio", "checkbox", "text"],
+      enum: ["radio", "checkbox", "text", "rich-text"],
       required: true,
     },
     options: [{ type: String }],
